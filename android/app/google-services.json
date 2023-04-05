@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "607745369544",
+    "project_id": "troca-livros-2",
+    "storage_bucket": "troca-livros-2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:607745369544:android:7b1e3f950cd5e0e6f98cfd",
+        "android_client_info": {
+          "package_name": "com.trocalivros2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "607745369544-ahus8m0o59cq8t5d91rvteujtjhq4o4f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC57Ey2-l04u6zJukYASb2ChvieEwGkWaI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "607745369544-ahus8m0o59cq8t5d91rvteujtjhq4o4f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
