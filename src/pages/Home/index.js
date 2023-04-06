@@ -4,6 +4,7 @@ import { View, Text, Button, ScrollView, SafeAreaView, Image, StyleSheet, Toucha
 import { AuthContext }  from '../../context/auth';
 import ChangePhoto from '../../components/ChangePhoto';
 import { BlurView } from "@react-native-community/blur";
+import Feather from 'react-native-vector-icons/Feather';
 
 
 export default function Home() {
@@ -28,6 +29,11 @@ export default function Home() {
       <ScrollView>
         
         <View style={styles.user}>
+
+          <TouchableOpacity onPress={()=> handleLogout()}>
+            <Feather name='log-out' color='#000' size={20}  />
+          </TouchableOpacity>
+
           <TouchableOpacity onPress={openChangePhoto}>
             {user.urlPerfil ? (
               <Image style={styles.imgUser} source={{uri: user.urlPerfil}}/>
@@ -36,9 +42,9 @@ export default function Home() {
             }
            
           </TouchableOpacity>
-          <Text style={styles.nameUser}>Guilherme Martins</Text>
-          <Button title='logout'onPress={()=> handleLogout()}/>
-          <Text>{user.nome}</Text>
+
+          <Text style={styles.nameUser}>{user.nome}</Text>
+
         </View>
         
         
@@ -65,7 +71,7 @@ export default function Home() {
 
 const styles = StyleSheet.create({
   container: {
-    flex:1
+    flex:1,
   },
   absolute: {
     position: "absolute",

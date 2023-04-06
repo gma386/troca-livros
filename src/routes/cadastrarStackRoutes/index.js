@@ -1,6 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import Home from '../../pages/Home';
+import Cadastrar from '../../pages/Cadastrar';
 import Feather from 'react-native-vector-icons/Feather';
 
 const Stack = createStackNavigator();
@@ -12,7 +12,7 @@ export default function StackScreen() {
       headerShown: false,
     }}
     >
-      <Stack.Screen name='Home' component={Home} />
+      <Stack.Screen name='CadastrarStack' component={Cadastrar} />
     </Stack.Navigator>
   );
 }

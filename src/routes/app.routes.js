@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from '../pages/Home';
 import Feather from 'react-native-vector-icons/Feather';
 import HomeStack from './homeStackRoutes';
+import CadastrarStack from './cadastrarStackRoutes';
 
 const AppTab = createBottomTabNavigator();
 
@@ -36,7 +37,7 @@ export default function AppRoutes() {
       }
     }}/>
 
-    <AppTab.Screen name='Cadastrar' component={Home}
+    <AppTab.Screen name='Cadastrar' component={CadastrarStack}
     options={{
       tabBarIcon: ({color, size}) => {
         return <Feather name='book-open' color={color} size={size}/>
