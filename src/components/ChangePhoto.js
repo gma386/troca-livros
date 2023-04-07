@@ -35,9 +35,6 @@ export default function ChangePhoto({closeChangePhoto}) {
       let fileName = response.assets[0].fileName;
       let uri = response.assets[0].uri;
       uploadPhoto(fileName, uri);
-
-      // console.log(JSON.stringify(response.assets[0].fileName))
-      // console.log(JSON.stringify(response.assets[0].uri))
     })
 
   }

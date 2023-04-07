@@ -149,6 +149,11 @@ export default function AuthProvider({ children}) {
 
 	}
 
+	//CADASTRAR LIVRO
+	async function cadastrarLivro(){
+		
+	}
+
  return (
 		<AuthContext.Provider value={{
 			signed: !!user, user, loading, signUp, signIn, signOut, uploadPhoto
