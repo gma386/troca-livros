@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, StyleSheet, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, SafeAreaView, StyleSheet, TextInput, TouchableOpacity, Image, Alert, Button } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import Feather from 'react-native-vector-icons/Feather';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import {AuthContext} from '../../context/auth';
 
 export default function Cadastrar() {
   const [nome, setNome] = useState();
@@ -12,6 +13,9 @@ export default function Cadastrar() {
   const [descricao, setDescricao] = useState();
   const [images, setImages] = useState([]);
   const [imagesBooks, setImagesBooks] = useState([]);
+  const [fileName, setFileName] = useState([]); 
+
+  const {cadastrarLivro} = useContext(AuthContext);
 
   const booksItem =  [
   {key: 1, nome: 'Fantasia'},
@@ -94,14 +98,21 @@ export default function Cadastrar() {
     }
     await launchCamera(options).then((response)=>{
       let uri = response.assets[0].uri;
+      console.log('meu response' , response)
+      
       let newImages = [...images, uri];
       setImages(newImages);
+
+      let localFileName = response.assets[0].fileName;
+      let newFileName = [...fileName, localFileName]
+      setFileName(newFileName);
     })
     
   }
 
-
-
+  function handleCadastrar(dados){
+    cadastrarLivro(dados)
+  }
 
  return (
   <SafeAreaView style={styles.container}>
@@ -166,6 +177,21 @@ export default function Cadastrar() {
           </View>
     
         </View>
+
+        <Button title='cadastrar' onPress={()=> {
+          let dados = {
+            nome: nome,
+            autor: autor,
+            editora: editora,
+            genero: genero,
+            descricao: descricao,
+            images: images,
+            fileName: fileName
+          }
+
+          handleCadastrar(dados)
+        }
+        }/>
 
       </View>
 

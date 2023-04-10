@@ -150,13 +150,29 @@ export default function AuthProvider({ children}) {
 	}
 
 	//CADASTRAR LIVRO
-	async function cadastrarLivro(){
+	// nome,autor,editora,genero,descricao,images, fileName
+	async function cadastrarLivro(dados){
+		let referencia = database().ref(`books/${user.uid}`)
+		let chaveRef = referencia.push();
+		let chaveKey = chaveRef.key;
+		await chaveRef.set(dados)
+	  
+		let chaveArmazenamentoRef = storage().ref(`books/${user.uid}/${chaveKey}`);
+	  
+		
+		await dados.images.forEach(async (element, index) => {
+		  let imagemChaveRef = chaveArmazenamentoRef.child(`${dados.fileName[index]}`);
+		  await imagemChaveRef.putFile(element);
+		  let downloadURL = await imagemChaveRef.getDownloadURL();
+		  await database().ref(`books/${user.uid}/${chaveKey}/images/${index}`).set(downloadURL);
+		});
+		
 		
 	}
 
  return (
 		<AuthContext.Provider value={{
-			signed: !!user, user, loading, signUp, signIn, signOut, uploadPhoto
+			signed: !!user, user, loading, signUp, signIn, signOut, uploadPhoto, cadastrarLivro
 			}}>
 			{children}
 		</AuthContext.Provider>
