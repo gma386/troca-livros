@@ -4,6 +4,7 @@ import Home from '../pages/Home';
 import Feather from 'react-native-vector-icons/Feather';
 import HomeStack from './homeStackRoutes';
 import CadastrarStack from './cadastrarStackRoutes';
+import ProcurarStack from './procurarStackRoutes';
 
 const AppTab = createBottomTabNavigator();
 
@@ -44,7 +45,7 @@ export default function AppRoutes() {
       }
     }}/>
 
-    <AppTab.Screen name='Procurar' component={Home}
+    <AppTab.Screen name='Procurar' component={ProcurarStack}
     options={{
       tabBarIcon: ({color, size}) => {
         return <Feather name='map' color={color} size={size}/>

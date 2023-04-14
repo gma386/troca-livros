@@ -11,6 +11,7 @@ export const AuthContext = createContext({});
 export default function AuthProvider({ children}) {
 	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(true);
+	const [userWithBooks, setUserWithBooks] = useState(null);
 
 	//useEffect (ciclo de vida) - Verifica se dentro do AsyncStorage já possui algum usuário salvo, para não deslogar o usuário a cada atualização
 	useEffect(() => {
@@ -39,6 +40,7 @@ export default function AuthProvider({ children}) {
 					email: value.user.email,
 					urlPerfil: snapshot.val().urlPerfil,
 					fileNamePerfil: snapshot.val().fileNamePerfil,
+					location: snapshot.val().location,
 				}
 				console.log('Info usuario logado:')
 				console.log(data)
@@ -62,7 +64,8 @@ export default function AuthProvider({ children}) {
 				uid: uid,
 				nome: nome,
 				urlPerfil: '',
-				fileNamePerfil: ''
+				fileNamePerfil: '',
+				location: ''
 			})
 			.then(()=>{
 				let data = {
@@ -70,7 +73,8 @@ export default function AuthProvider({ children}) {
 					nome: nome,
 					email: value.user.email,
 					urlPerfil: undefined,
-					fileNamePerfil: undefined
+					fileNamePerfil: undefined,
+					location: undefined
 				}
 				console.log(data);
 				setUser(data);
@@ -137,6 +141,7 @@ export default function AuthProvider({ children}) {
 				email: snapshot.val().email,
 				urlPerfil: snapshot.val().urlPerfil,
 				fileNamePerfil: snapshot.val().fileNamePerfil,
+				location: snapshot.val().location,
 				
 			};
 			setUser(data);
@@ -151,28 +156,53 @@ export default function AuthProvider({ children}) {
 
 	//CADASTRAR LIVRO
 	// nome,autor,editora,genero,descricao,images, fileName
-	async function cadastrarLivro(dados){
+	async function cadastrarLivro(dados, dadosLocation){
+		//cadastra o book no database
 		let referencia = database().ref(`books/${user.uid}`)
 		let chaveRef = referencia.push();
 		let chaveKey = chaveRef.key;
 		await chaveRef.set(dados)
-	  
-		let chaveArmazenamentoRef = storage().ref(`books/${user.uid}/${chaveKey}`);
-	  
-		
+	    
+		//faz upload da imagem no storage depois atualiza o database com o link público da imagem
+		let chaveArmazenamentoRef = storage().ref(`books/${user.uid}/${chaveKey}`); 
 		await dados.images.forEach(async (element, index) => {
 		  let imagemChaveRef = chaveArmazenamentoRef.child(`${dados.fileName[index]}`);
 		  await imagemChaveRef.putFile(element);
 		  let downloadURL = await imagemChaveRef.getDownloadURL();
 		  await database().ref(`books/${user.uid}/${chaveKey}/images/${index}`).set(downloadURL);
 		});
+
+		//insere location no user
+		let refLocation = database().ref(`users/${user.uid}/location`);
+		refLocation.set({
+			latitude: dadosLocation.latitude,
+			longitude: dadosLocation.longitude
+		});
+
 		
-		
+	}
+
+	//LISTA usuarios com book dentro
+	async function montaListaParaLocalizacao(){
+		let snapshotBooks = await database().ref('books').once('value');
+		let booksVal = snapshotBooks.val();
+
+		let snapshotUsers = await database().ref('users').once('value');
+		let objSnapshotUsers = snapshotUsers.val();
+
+		const newObjSnapshotUsers = {};
+		for (const [uid, userInList] of Object.entries(objSnapshotUsers)) {
+			
+			if (booksVal[uid] && uid != user.uid) {
+				newObjSnapshotUsers[uid] = Object.assign({}, userInList, { books: booksVal[uid] });
+			}
+		}
+		setUserWithBooks(newObjSnapshotUsers);
 	}
 
  return (
 		<AuthContext.Provider value={{
-			signed: !!user, user, loading, signUp, signIn, signOut, uploadPhoto, cadastrarLivro
+			signed: !!user, user, loading, userWithBooks, signUp, signIn, signOut, uploadPhoto, cadastrarLivro, montaListaParaLocalizacao
 			}}>
 			{children}
 		</AuthContext.Provider>

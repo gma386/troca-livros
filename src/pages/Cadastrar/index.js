@@ -4,6 +4,7 @@ import {Picker} from '@react-native-picker/picker';
 import Feather from 'react-native-vector-icons/Feather';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import {AuthContext} from '../../context/auth';
+import Geolocation from '@react-native-community/geolocation';
 
 export default function Cadastrar() {
   const [nome, setNome] = useState();
@@ -13,10 +14,12 @@ export default function Cadastrar() {
   const [descricao, setDescricao] = useState();
   const [images, setImages] = useState([]);
   const [imagesBooks, setImagesBooks] = useState([]);
-  const [fileName, setFileName] = useState([]); 
+  const [fileName, setFileName] = useState([]);
+  const [location, setLocation] = useState(null);
 
   const {cadastrarLivro} = useContext(AuthContext);
 
+  //GENEROS
   const booksItem =  [
   {key: 1, nome: 'Fantasia'},
   {key: 2, nome: 'Ficção'},
@@ -44,10 +47,31 @@ export default function Cadastrar() {
   {key: 24, nome: 'Informática'},
   {key: 25, nome: 'Outro'}
   ]
-
+  //MONTA PICKER DE GENEROS
   let items = booksItem.map( (v,k)=>{
     return <Picker.Item key={k} value={v.nome} label={v.nome} />
   })
+
+  //POSIÇÃO DO USER
+  useEffect(() => {
+    Geolocation.getCurrentPosition(
+      position => {
+        const {latitude, longitude} = position.coords;
+        setLocation({latitude, longitude});
+      },
+      error => Alert.alert(error.message),
+      {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
+    );
+    
+  }, []);
+
+  //ATUALIZA AS IMAGES TIRADAS CONFORME images É MODIFICADO
+  useEffect(() => {
+    let newImagesBooks = images.map((link, k)=>{
+      return <TouchableOpacity key={k} onPress={()=> apagarFoto(k)}><Image key={k} style={{width: 70, height: 70, padding: 10, margin: 10, borderRadius: 5}} source={{uri: link}}/></TouchableOpacity>
+    })
+    setImagesBooks(newImagesBooks);
+	}, [images])
 
   function apagarFoto(index){
     Alert.alert(
@@ -74,14 +98,6 @@ export default function Cadastrar() {
       },
     );
   }
-
-  useEffect(() => {
-    let newImagesBooks = images.map((link, k)=>{
-      return <TouchableOpacity key={k} onPress={()=> apagarFoto(k)}><Image key={k} style={{width: 70, height: 70, padding: 10, margin: 10, borderRadius: 5}} source={{uri: link}}/></TouchableOpacity>
-    })
-    setImagesBooks(newImagesBooks);
-    console.log("EU FUI CHAMADO, useEffect")
-	}, [images])
 
   async function camera(){
     if(images.length > 2){
@@ -110,8 +126,8 @@ export default function Cadastrar() {
     
   }
 
-  function handleCadastrar(dados){
-    cadastrarLivro(dados)
+  function handleCadastrar(dados, dadosLocation){
+    cadastrarLivro(dados, dadosLocation)
   }
 
  return (
@@ -186,10 +202,14 @@ export default function Cadastrar() {
             genero: genero,
             descricao: descricao,
             images: images,
-            fileName: fileName
+            fileName: fileName,
+          }
+          let dadosLocation = {
+            latitude: location.latitude,
+            longitude: location.longitude
           }
 
-          handleCadastrar(dados)
+          handleCadastrar(dados, dadosLocation)
         }
         }/>
 
