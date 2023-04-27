@@ -16,10 +16,12 @@ export default function ChangePhoto({closeChangePhoto}) {
       saveToPhotos: true
     }
     await launchCamera(options).then((response)=>{
-      let fileName = response.assets[0].fileName;
-      let uri = response.assets[0].uri;
-      uploadPhoto(fileName, uri);
-
+      if(response.assets && response.assets.length > 0){
+        let fileName = response.assets[0].fileName;
+        let uri = response.assets[0].uri;
+        uploadPhoto(fileName, uri);
+        closeChangePhoto()
+      }
     })
   }
 
@@ -32,11 +34,13 @@ export default function ChangePhoto({closeChangePhoto}) {
     }
     await launchImageLibrary(options).then((response)=>{
       console.log(response)
-      let fileName = response.assets[0].fileName;
-      let uri = response.assets[0].uri;
-      uploadPhoto(fileName, uri);
+      if(response.assets && response.assets.length > 0){
+        let fileName = response.assets[0].fileName;
+        let uri = response.assets[0].uri;
+        uploadPhoto(fileName, uri);
+        closeChangePhoto()
+      }
     })
-
   }
 
 

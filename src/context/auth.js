@@ -42,8 +42,7 @@ export default function AuthProvider({ children}) {
 					fileNamePerfil: snapshot.val().fileNamePerfil,
 					location: snapshot.val().location,
 				}
-				console.log('Info usuario logado:')
-				console.log(data)
+
 				setUser(data);
 				storageUser(data);
 			})
@@ -58,7 +57,7 @@ export default function AuthProvider({ children}) {
 		await auth()
 		.createUserWithEmailAndPassword(email, password)
 		.then(async (value) => {
-			console.log('CHEGOU AQUI')
+			
 			let uid = value.user.uid;
 			await database().ref('users').child(uid).set({
 				uid: uid,
@@ -76,7 +75,7 @@ export default function AuthProvider({ children}) {
 					fileNamePerfil: undefined,
 					location: undefined
 				}
-				console.log(data);
+
 				setUser(data);
 				storageUser(data);
 			})
@@ -85,11 +84,11 @@ export default function AuthProvider({ children}) {
 		})
 		.catch(error => {
 			if (error.code === 'auth/email-already-in-use') {
-				console.log('Esse email já está em uso');
+
 			}
 
 			if (error.code === 'auth/invalid-email') {
-				console.log('Esse email é inválido');
+
 			}
 
 			console.error(error);
@@ -117,7 +116,7 @@ export default function AuthProvider({ children}) {
 			//verifica se o usuário ja possui foto
 			if(user.urlPerfil !== undefined && user.urlPerfil !== ''){
 				let string = user.uid + '/' + user.fileNamePerfil
-				console.log('stringgggg:', string)
+				
 				let storageRef = storage().ref('users').child(string);
 				await storageRef.delete()
 			}
@@ -148,7 +147,7 @@ export default function AuthProvider({ children}) {
 			storageUser(data);
 
 		} catch(error){ 
-			console.log('Erro ao carregar a foto:', error);
+			
 		}
 
 
@@ -200,9 +199,240 @@ export default function AuthProvider({ children}) {
 		setUserWithBooks(newObjSnapshotUsers);
 	}
 
+	//LISTA os chats do User
+	async function listarTodosChatsDoUser(setChats){
+		database().ref(`chatsUsers/${user.uid}/chats`).on('value', (snapshot) => {
+			if (snapshot.exists() && snapshot.val() !== null) {
+				let chats = [];
+				snapshot.forEach((childSnapshot) => {
+					let chat = childSnapshot.val();
+					chats.push(chat);
+				});
+				
+
+				for (let i = 0; i < chats.length; i++) {
+					const messages = chats[i].messages;
+					const newMessages = [];
+				  
+					// Loop para percorrer cada chave-valor dentro de "messages"
+					for (const key in messages) {
+					  if (messages.hasOwnProperty(key)) {
+						const message = messages[key];
+						const newMessage = {
+						  id: message.id,
+						  content: message.content,
+						  sent: message.sent,
+						  sentBy: message.sentBy
+						};
+						newMessages.push(newMessage);
+					  }
+					}
+				  
+					chats[i].messages = newMessages;
+				  }
+				
+				
+
+				setChats(chats)
+			} else {
+				
+
+				setChats([]);
+			}
+
+		})
+	}
+
+	//LISTA um chat do User com o contatoId
+	async function listaUmChatDoUser(contatoId, setChat){
+		let snapshot = await database().ref(`chatsUsers/${user.uid}/chats`).once('value')
+		let chats = snapshot.val();
+
+		let chatFound = null;
+		let chatIdFound = null;
+		for (let chatId in chats) {
+			if (chats.hasOwnProperty(chatId)) {
+			  let chat = chats[chatId];
+			  let users = chat.users;
+			  let foundUser = users.find(user => user.id === contatoId);
+			  if (foundUser) {
+				chatIdFound = chatId;
+				chatFound = chat;
+				break;
+			  }
+			}
+		}
+	
+		database().ref(`chatsUsers/${user.uid}/chats/${chatIdFound}`).on('value', async (snapshot) => {
+			if (snapshot.exists() && snapshot.val() !== null) {
+				setChat(snapshot.val());
+			} else {
+				setChat(null);
+			}
+		})
+
+	}
+
+	async function sendMessage(data, contatoId, setFirstChat){
+		
+		let snapshotChats = await database().ref(`chatsUsers/${user.uid}/chats`).once('value')
+
+		if(snapshotChats.exists() && snapshotChats.val() !== null){
+			let chats = snapshotChats.val();
+			let chatFound = null;
+			let chatIdFound = null;
+			for (let chatId in chats) {
+				if (chats.hasOwnProperty(chatId)) {
+					let chat = chats[chatId];
+					let users = chat.users;
+					let foundUser = users.find(user => user.id === contatoId);
+					if (foundUser) {
+						chatIdFound = chatId;
+						chatFound = chat;
+						break;
+					}
+				}
+			}
+
+			if(chatFound){
+				let messageRef = database().ref(`chatsUsers/${user.uid}/chats/${chatIdFound}/messages`).push()
+				let messageKey = messageRef.key
+
+				await messageRef.set({
+					id: messageKey,
+					content: data.content,
+					sent: data.sent,
+					sentBy: data.sentBy
+				});
+				
+				let messageOtherUser = database().ref(`chatsUsers/${contatoId}/chats/${chatIdFound}/messages/${messageKey}`)
+
+				await messageOtherUser.set({
+					id: messageKey,
+					content: data.content,
+					sent: data.sent,
+					sentBy: data.sentBy
+				})
+
+			}else{
+				let userNameSnapshotExists = await database().ref(`users/${contatoId}/nome`).once('value');
+				let userNameExists = userNameSnapshotExists.val();
+	
+				let newChatRefExists = database().ref(`chatsUsers/${user.uid}/chats`).push();
+				let newChatKeyExists = newChatRefExists.key;
+
+				await newChatRefExists.set({
+					id: newChatKeyExists,
+					users:[
+					{
+						id: user.uid,
+						phone: user.nome
+					},
+					{
+						id: contatoId,
+						phone: userNameExists
+					}
+					]
+				});
+
+				let newMessageRefExists = database().ref(`chatsUsers/${user.uid}/chats/${newChatKeyExists}/messages`).push();
+				let newMessageKeyExists = newMessageRefExists.key
+
+				await newMessageRefExists.set({
+					id: newMessageKeyExists,
+					content: data.content,
+					sent: data.sent,
+					sentBy: data.sentBy
+				})
+
+				//Atualizar segundo contato
+				let newChatContatoIdRefExists = database().ref(`chatsUsers/${contatoId}/chats/${newChatKeyExists}`);
+				await newChatContatoIdRefExists.set({
+					id: newChatKeyExists,
+					users: [
+						{
+							id: contatoId,
+							phone: userNameExists
+						},
+						{
+							id: user.uid,
+							phone: user.nome
+						}
+					]
+				});
+
+				let newMessageContatoIdRefExists = database().ref(`chatsUsers/${contatoId}/chats/${newChatKeyExists}/messages/${newMessageKeyExists}`);
+				await newMessageContatoIdRefExists.set({
+					id: newMessageKeyExists,
+					content: data.content,
+					sent: data.sent,
+					sentBy: data.sentBy
+				})
+				setFirstChat('new')
+			}
+		} else {
+
+			let userNameSnapshot = await database().ref(`users/${contatoId}/nome`).once('value');
+			let userNameContatoId = userNameSnapshot.val();
+
+			let newChatRef = database().ref(`chatsUsers/${user.uid}/chats`).push();
+			let newChatKey = newChatRef.key;
+
+			await newChatRef.set({
+				id: newChatKey,
+				users:[
+					{
+						id: user.uid,
+						phone: user.nome
+					},
+					{
+						id: contatoId,
+						phone: userNameContatoId
+					}
+					]
+			})
+
+			let newMessageRef = database().ref(`chatsUsers/${user.uid}/chats/${newChatKey}/messages`).push();
+			let newMessageRefKey = newMessageRef.key
+
+			await newMessageRef.set({
+				id: newMessageRefKey,
+				content: data.content,
+				sent: data.sent,
+				sentBy: data.sentBy
+			});
+
+			//Atualizar o segundo contato
+			let newChatContatoIdRef = database().ref(`chatsUsers/${contatoId}/chats/${newChatKey}`);
+			await newChatContatoIdRef.set({
+				id: newChatKey,
+				users: [
+					{
+						id: contatoId,
+						phone: userNameContatoId
+					},
+					{
+						id: user.uid,
+						phone: user.nome
+					}
+				]
+			});
+
+			let newMessageContatoIdRef = database().ref(`chatsUsers/${contatoId}/chats/${newChatKey}/messages/${newMessageRefKey}`)
+			await newMessageContatoIdRef.set({
+				id: newMessageRefKey,
+				content: data.content,
+				sent: data.sent,
+				sentBy: data.sentBy
+			})
+			setFirstChat('new')
+		}
+	}
+
+
  return (
 		<AuthContext.Provider value={{
-			signed: !!user, user, loading, userWithBooks, signUp, signIn, signOut, uploadPhoto, cadastrarLivro, montaListaParaLocalizacao
+			signed: !!user, user, loading, userWithBooks, signUp, signIn, signOut, uploadPhoto, cadastrarLivro, montaListaParaLocalizacao, listarTodosChatsDoUser, listaUmChatDoUser, sendMessage
 			}}>
 			{children}
 		</AuthContext.Provider>

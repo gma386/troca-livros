@@ -5,6 +5,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import HomeStack from './homeStackRoutes';
 import CadastrarStack from './cadastrarStackRoutes';
 import ProcurarStack from './procurarStackRoutes';
+import MensagensStack from './mensagensStackRoutes';
 
 const AppTab = createBottomTabNavigator();
 
@@ -52,7 +53,7 @@ export default function AppRoutes() {
       }
     }}/>
 
-    <AppTab.Screen name='Mensagens' component={Home}
+    <AppTab.Screen name='Mensagens' component={MensagensStack}
     options={{
       tabBarIcon: ({color, size}) => {
         return <Feather name='message-circle' color={color} size={size}/>

@@ -1,8 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import Procurar from '../../pages/Procurar';
-import Feather from 'react-native-vector-icons/Feather';
-import PerfilUsers from '../../pages/PerfilUsers'
+import Mensagens from '../../pages/Mensagens';
+import Chat from '../../pages/Chat';
 
 const Stack = createStackNavigator();
 
@@ -13,8 +12,8 @@ export default function StackScreen() {
       headerShown: false,
     }}
     >
-      <Stack.Screen name='ProcurarStack' component={Procurar} />
-      <Stack.Screen name='PerfilUsers' component={PerfilUsers} />
+      <Stack.Screen name='MensagensStack' component={Mensagens} />
+      <Stack.Screen name='Chat' component={Chat} />
     </Stack.Navigator>
   );
 }

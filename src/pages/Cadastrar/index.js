@@ -21,6 +21,7 @@ export default function Cadastrar() {
 
   //GENEROS
   const booksItem =  [
+  {key: 0, nome: 'Escolha o gênero'},
   {key: 1, nome: 'Fantasia'},
   {key: 2, nome: 'Ficção'},
   {key: 3, nome: 'Ação'},
@@ -89,6 +90,9 @@ export default function Cadastrar() {
             let newImage = [...images];
             newImage.splice(index,1);
             setImages(newImage);
+            let newFileName = [...fileName];
+            newFileName.splice(index,1);
+            setFileName(newFileName)
           },
           style: 'default',
         },
@@ -113,15 +117,17 @@ export default function Cadastrar() {
       saveToPhotos: true
     }
     await launchCamera(options).then((response)=>{
-      let uri = response.assets[0].uri;
-      console.log('meu response' , response)
-      
-      let newImages = [...images, uri];
-      setImages(newImages);
+      if(response.assets && response.assets.length > 0){
+        let uri = response.assets[0].uri;
+        console.log('meu response' , response)
+        
+        let newImages = [...images, uri];
+        setImages(newImages);
 
-      let localFileName = response.assets[0].fileName;
-      let newFileName = [...fileName, localFileName]
-      setFileName(newFileName);
+        let localFileName = response.assets[0].fileName;
+        let newFileName = [...fileName, localFileName]
+        setFileName(newFileName);
+      }
     })
     
   }
@@ -195,6 +201,23 @@ export default function Cadastrar() {
         </View>
 
         <Button title='cadastrar' onPress={()=> {
+          console.log('genero> ', genero)
+
+          if (genero === 'Escolha o gênero' || genero == undefined) {
+            alert('Por favor, selecione um gênero');
+            return;
+          }
+
+          if(images == ''){
+            alert('Adicione uma foto')
+            return;
+          }
+
+          if(nome == undefined || autor == undefined || editora == undefined || descricao == undefined){
+            alert('Preencha todos os campos')
+            return;
+          }
+          
           let dados = {
             nome: nome,
             autor: autor,

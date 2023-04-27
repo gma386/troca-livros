@@ -7,12 +7,12 @@ import { getDistance } from 'geolib';
 import Geolocation from '@react-native-community/geolocation';
 import {AuthContext} from '../../context/auth';
 
-export default function Procurar() {
+export default function Procurar({navigation}) {
   const [region, setRegion] = useState(null);
   const [center, setCenter] = useState(null);
   const [circleRadius, setCircleRadius] = useState(1000);
   const [markers, setMarkers] = useState([]);
-  const {montaListaParaLocalizacao, userWithBooks} = useContext(AuthContext);
+  const {user, montaListaParaLocalizacao, userWithBooks} = useContext(AuthContext);
   const mapRef = useRef(null);
   
   useEffect(() => {
@@ -42,14 +42,19 @@ export default function Procurar() {
     if (!center) {
       return;
     }
-    console.log(userWithBooks);
+    
+  
     let umObjetoData = []
     for(const value in userWithBooks){
       let data = {
         latitude: userWithBooks[value].location.latitude,
         longitude: userWithBooks[value].location.longitude,
         name: userWithBooks[value].nome,
+        uid: value,
+        urlPerfil: userWithBooks[value].urlPerfil,
+        books: userWithBooks[value].books
       }
+
       umObjetoData.push(data);
     }
     
@@ -57,7 +62,7 @@ export default function Procurar() {
       const distance = getDistance(center, marker);
       return distance <= circleRadius;
     });
-
+    
     setMarkers(filteredMarkers);
   }
 
@@ -124,10 +129,16 @@ export default function Procurar() {
         />
         {markers.map((marker, index) => (
         <Marker key={index} coordinate={marker} title={marker.name} onPress={()=> {
-          alert('Oi')
+          
+          navigation.navigate('PerfilUsers', {selectedMarker: marker})
         }}>
           <View style={{ height: '100%', width: '100%', }}>
-            <Image style={{width: 40, height: 40, borderRadius: 25, borderColor: 'rgba(20,100,250,0.5)', borderWidth: 2}}source={{uri: 'https://picsum.photos/200'}}/>
+            {marker.urlPerfil ? (
+              <Image style={styles.imgMarker} source={{uri: marker.urlPerfil}}/>
+            ):
+            <Image style={styles.imgMarker} source={require('../../assets/user.png')}/>
+            }
+            {/* <Image style={{width: 40, height: 40, borderRadius: 25, borderColor: 'rgba(20,100,250,0.5)', borderWidth: 2}}source={{uri: 'https://picsum.photos/200'}}/> */}
           </View>
         </Marker>
         ))}
@@ -147,26 +158,34 @@ export default function Procurar() {
 }
 
 const styles = StyleSheet.create({
-mapa: {
-width: '100%',
-height: '100%',
-},
-buttonsContainer: {
-position: 'absolute',
-top: 10,
-right: 10,
-flexDirection: 'column',
-justifyContent: 'center',
-alignItems: 'center',
-},
-button: {
-backgroundColor: 'rgba(255, 255, 255, 0.7)',
-padding: 10,
-marginBottom: 10,
-borderRadius: 5,
-},
-buttonText: {
-color: 'black',
-textAlign: 'center',
-},
+  mapa: {
+  width: '100%',
+  height: '100%',
+  },
+  buttonsContainer: {
+  position: 'absolute',
+  top: 10,
+  right: 10,
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  },
+  button: {
+  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  padding: 10,
+  marginBottom: 10,
+  borderRadius: 5,
+  },
+  buttonText: {
+  color: 'black',
+  textAlign: 'center',
+  },
+  imgMarker:{
+    width: 40, 
+    height: 40, 
+    borderRadius: 25, 
+    borderColor: 'rgba(20,100,250,0.5)', 
+    borderWidth: 2,
+
+  }
 });
